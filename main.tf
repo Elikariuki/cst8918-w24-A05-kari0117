@@ -31,20 +31,20 @@ resource "azurerm_resource_group" "rg" {
   location = var.region
 }
 
-# Define a public IP address
-resource "azurerm_public_ip" "webserver" {
-  name                = "${var.labelPrefix}A05PublicIP"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
-}
-
 # Define the virtual network
 resource "azurerm_virtual_network" "vnet" {
   name                = "${var.labelPrefix}A05Vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+}
+
+# Define a public IP address
+resource "azurerm_public_ip" "webserver" {
+  name                = "${var.labelPrefix}A05PublicIP"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Dynamic"
 }
 
 # Define the subnet
@@ -98,4 +98,10 @@ resource "azurerm_network_interface" "webserver" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.webserver.id
   }
+}
+
+# Link the security group to the NIC
+resource "azurerm_network_interface_security_group_association" "webserver" {
+  network_interface_id      = azurerm_network_interface.webserver.id
+  network_security_group_id = azurerm_network_security_group.webserver.id
 }
